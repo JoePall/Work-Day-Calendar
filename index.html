@@ -41,33 +41,31 @@
       loadTimeBlocks();
       styleTimeblocks();
 
-      // Creates the html for a block of time and appends it to the calendar
+      // Creates the html for a timeblock and appends it to the calendar
       function createTimeblock(militaryHour, hourDisplay, text) {
 
-        // Creating a section element to represent a timeblock
+        // Creates a section element to represent a timeblock
         var result = $("<section>")
           .addClass("row time-block")
           .val(militaryHour);
 
-        // Creating a time element for this timeblock
+        // Creates a time element for this timeblock
         var time = $("<time>")
           .addClass("col-1 hour")
           .text(hourDisplay);
         result.append(time);
 
-        // Creating a textarea element for this timeblock
+        // Creates a textarea element for this timeblock
         var textarea = $("<textarea>")
           .addClass("description col-10 h-100 text-left")
           .val(text);
         result.append(textarea);
 
-        // Creating a button element for this timeblock
-        var btn = $("<button>")
-          .addClass("saveBtn col-1 px-4 h-100 text-center border-0");
+        // Creates a button element for this timeblock
+        var btn = $("<button>").addClass("saveBtn col-1 px-4 h-100 text-center border-0");
 
-        // Creating a Font Awesome icon for the button in this timeblock
-        var i = $("<i>")
-          .addClass("fas fa-save");
+        // Creates a Font Awesome icon for the button in this timeblock
+        var i = $("<i>").addClass("fas fa-save");
         btn.append(i);
 
         result.append(btn);
@@ -80,7 +78,7 @@
         for (let i = 9; i < 18; i++) {
           var hourDisplay = moment(i, "hh").format("ha");
 
-          // Get the event from local storage if it matches by year, month, day and hour
+          // Get the saved event from local storage if it matches by year, month, day and hour
           var savedEvent = null;
           $.each(JSON.parse(localStorage.getItem("events")), (j, event) => {
             if ((moment().format("yyyyMMDD") + (i /* hour */)) == event[0]) {
@@ -88,11 +86,10 @@
             }
           });
 
-          // if there is an event 
+          // If there is a saved event add create a timeblock with the text, 
+          // otherwise create a blank timeblock
           if (savedEvent != null) {
-            var x = savedEvent[1];
-            
-            createTimeblock(i, hourDisplay, x);
+            createTimeblock(i, hourDisplay, savedEvent[1]);
           }
           else {
             createTimeblock(i, hourDisplay, "");
@@ -100,44 +97,43 @@
         }
       }
 
-      // Style each time block by past, present and future
+      // Style each time block by past, present and future hour
       function styleTimeblocks() {
-
-        // Gets the current hour in military time
-        var hr = parseInt(moment().format("H"));
-
         $(".time-block textarea").each((i, timeblock) => {
-
+        
           // Clear any existing classes
           $(timeblock).removeClass("past").removeClass("present").removeClass("future");
 
-          // Get the hour of timeblock in military time
-          var val = parseInt($(timeblock).parent().val());
+          // Gets the hour of timeblock
+          var timeblockHour = parseInt($(timeblock).parent().val());
 
-          // // Add the current class
-          if (val < hr) $(timeblock).addClass("past");
-          else if (val == hr) $(timeblock).addClass("present");
+          // Gets the current hour and adds the class appropriate to this timeblock
+          var currentHour = parseInt(moment().format("H"));
+          if (timeblockHour < currentHour) $(timeblock).addClass("past");
+          else if (timeblockHour == currentHour) $(timeblock).addClass("present");
           else $(timeblock).addClass("future");
         });
       }
 
-      // Saves the text of the timeblock and the date and time to local storage
-      $(".saveBtn").click(function() {
-        var result = events;
+      // Saves the text to local storage with year, month, day and hour of timeblock
+      $(".saveBtn").click(event => {
+        var result = JSON.parse(localStorage.getItem("events"));
+        
+        // Gets event details
+        var eventDateTime = (moment().format("yyyyMMDD") + $(event.currentTarget).parent().val());
+        var text = $(event.currentTarget).siblings("textarea").val();
 
-        var element = $(event.currentTarget);
+        // Add the event to the array if an array exists;
+        // Otherwise, creates an array with the event
+        var event = [eventDateTime, text];
+        if (result == null) result = [event];
+        result.push(event);
 
-        var eventDateTime = (moment().format("yyyyMMDD") + element.parent().val());
-        var text = element.siblings("textarea").val();
-
-        var value = [eventDateTime, text];
-        if (events == null) events = [value];
-        result.push(value);
-
+        // Stores events to local storage
         localStorage.setItem("events", JSON.stringify(result));
       });
     });
-    // Get the event from local storage if it matches by year, month, day and hour
   </script>
 </body>
+
 </html>
